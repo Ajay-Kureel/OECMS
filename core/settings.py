@@ -136,3 +136,5 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Add this at the bottom of settings.py
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
+LOGOUT_REDIRECT_URL = 'home'
