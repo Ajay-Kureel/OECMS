@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.accounts',
-
+    'django_extensions',
     'apps.academics', # We will create this later
     'apps.exams',
 ]
@@ -137,4 +137,6 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # Add this at the bottom of settings.py
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-LOGOUT_REDIRECT_URL = 'home'
+# --- AUTHENTICATION ROUTING ---
+LOGIN_REDIRECT_URL = '/'   # Where to go after a successful login
+LOGOUT_REDIRECT_URL = '/'  # Where to go after logging out

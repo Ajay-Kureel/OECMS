@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
+from django.core.serializers.json import DjangoJSONEncoder
 
 from django.utils import timezone
 from django.contrib import messages
@@ -570,3 +571,98 @@ def resolve_report(request, report_id):
     
     messages.success(request, f"Report from {report.student.username} has been marked as resolved.")
     return redirect('faculty_reports')
+
+
+@login_required
+@admin_required
+def admin_exam_schedule(request):
+    now = timezone.now()
+
+    # 1. Categorize Exams based on actual time
+    live_exams_query = Exam.objects.filter(start_time__lte=now, end_time__gte=now).order_by('end_time')
+    upcoming_exams_query = Exam.objects.filter(start_time__gt=now).order_by('start_time')
+    completed_exams_query = Exam.objects.filter(end_time__lt=now).order_by('-end_time')
+
+    # 2. KPI Metrics
+    context = {
+        'total_live': live_exams_query.count(),
+        'total_upcoming': upcoming_exams_query.count(),
+        'total_completed': completed_exams_query.count(),
+    }
+
+    # 3. Triple Pagination Logic (4 cards per column to keep it clean)
+    paginator_live = Paginator(live_exams_query, 4)
+    page_live = request.GET.get('p_live', 1)
+    context['live_exams'] = paginator_live.get_page(page_live)
+
+    paginator_upcoming = Paginator(upcoming_exams_query, 4)
+    page_up = request.GET.get('p_up', 1)
+    context['upcoming_exams'] = paginator_upcoming.get_page(page_up)
+
+    paginator_completed = Paginator(completed_exams_query, 4)
+    page_comp = request.GET.get('p_comp', 1)
+    context['completed_exams'] = paginator_completed.get_page(page_comp)
+
+    return render(request, 'exams/admin_schedule.html', context)
+
+
+# admin create exam
+
+@login_required
+@admin_required
+def admin_create_exam(request):
+    # Fetch all subjects and prefetch their questions for lightning-fast performance
+    subjects = Subject.objects.prefetch_related('questions').all()
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        primary_subject_id = request.POST.get('primary_subject')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        duration = request.POST.get('duration_minutes')
+        passing_marks = request.POST.get('passing_marks')
+        instructions = request.POST.get('instructions')
+        proctoring = request.POST.get('proctoring_enabled') == 'on'
+        
+        if not primary_subject_id:
+            messages.error(request, "A Primary Subject is required.")
+            return redirect('admin_create_exam')
+            
+        primary_subject = Subject.objects.get(id=primary_subject_id)
+        
+        # 1. Create the Exam Record
+        exam = Exam.objects.create(
+            title=title,
+            subject=primary_subject,
+            created_by=request.user,
+            start_time=start_time,
+            end_time=end_time,
+            duration_minutes=duration,
+            passing_marks=passing_marks,
+            instructions=instructions,
+            proctoring_enabled=proctoring
+        )
+        
+        # 2. Extract selected questions and their specific marks
+        selected_q_ids = request.POST.getlist('selected_questions')
+        for q_id in selected_q_ids:
+            marks = request.POST.get(f'marks_{q_id}', 1)
+            question = Question.objects.get(id=q_id)
+            ExamQuestion.objects.create(exam=exam, question=question, marks=marks)
+            
+        messages.success(request, f'University Exam "{title}" created successfully with {len(selected_q_ids)} questions!')
+        return redirect('admin_exam_schedule')
+
+    # Prepare JSON data for the dynamic JavaScript tabs
+    subjects_data = {}
+    for sub in subjects:
+        subjects_data[sub.id] = {
+            'name': f"{sub.code} - {sub.name}",
+            'questions': [{'id': q.id, 'text': q.text, 'difficulty': q.difficulty} for q in sub.questions.all()]
+        }
+
+    context = {
+        'subjects': subjects,
+        'subjects_json': json.dumps(subjects_data, cls=DjangoJSONEncoder)
+    }
+    return render(request, 'exams/admin_create_exam.html', context)

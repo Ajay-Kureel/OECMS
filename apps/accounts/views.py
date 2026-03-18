@@ -15,20 +15,41 @@ from academics.models import Subject
 from accounts.models import CustomUser
 from exams.models import Exam , Question ,StudentExam
 
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+
+User = get_user_model()
+
+
+# def home(request):
+#     # Smart Routing: If they are already logged in, send them to their dashboard!
+#     if request.user.is_authenticated:
+#         if getattr(request.user, 'role', None) == 'faculty':
+#             return redirect('faculty_dashboard')
+#         elif getattr(request.user, 'role', None) == 'student':
+#             return redirect('student_dashboard')
+#         elif request.user.is_superuser:
+#             return redirect('/admin/')
+            
+#     # If they are not logged in, show them the beautiful landing page
+#     return render(request, 'home.html')
+
 def home(request):
+    # Bypass: If you add ?view=home to the URL, it will stay on the home page
+    if request.GET.get('view') == 'home':
+        return render(request, 'home.html')
+
     # Smart Routing: If they are already logged in, send them to their dashboard!
     if request.user.is_authenticated:
         if getattr(request.user, 'role', None) == 'faculty':
             return redirect('faculty_dashboard')
         elif getattr(request.user, 'role', None) == 'student':
             return redirect('student_dashboard')
-        elif request.user.is_superuser:
-            return redirect('/admin/')
+        elif request.user.is_superuser or getattr(request.user, 'role', None) == 'admin':
+            return redirect('admin_dashboard') # FIXED: Now redirects to your Custom Dashboard!
             
     # If they are not logged in, show them the beautiful landing page
     return render(request, 'home.html')
-
-
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
     
@@ -150,3 +171,51 @@ def student_dashboard(request):
 
 
 
+@login_required
+@admin_required
+def manage_users(request):
+    search_q = request.GET.get('q', '')
+    active_tab = request.GET.get('tab', 'students') # Default to students tab
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_user':
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            role = request.POST.get('role')
+
+            # 1. Check if username already exists
+            if User.objects.filter(username=username).exists():
+                messages.error(request, f'Username "{username}" is already taken.')
+            else:
+                # 2. Securely create the user (this hashes the password!)
+                user = User.objects.create_user(username=username, email=email, password=password)
+                
+                # 3. Assign the custom role and save
+                user.role = role
+                user.save()
+                
+                messages.success(request, f'{role.capitalize()} "{username}" registered successfully!')
+            
+            # Keep them on the tab of the role they just created
+            return redirect(f'/accounts/admin-dashboard/users/?tab={role}s')
+
+    # Fetch Data & Apply Search Filters
+    users = User.objects.all().order_by('-date_joined') # Newest first
+    if search_q:
+        users = users.filter(Q(username__icontains=search_q) | Q(email__icontains=search_q))
+
+    # Split the querysets for the tabs
+    students = users.filter(role='student')
+    faculty = users.filter(role='faculty')
+
+    context = {
+        'students': students,
+        'faculty': faculty,
+        'search_q': search_q,
+        'active_tab': active_tab,
+    }
+    # Ensure this path matches where you save the HTML file!
+    return render(request, 'accounts/manage_users.html', context)

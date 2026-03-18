@@ -1,0 +1,177 @@
+{% extends 'base.html' %} {% block title %}Manage Users | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4">
+    
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">User Management</h1>
+        <p class="text-gray-500 mt-1">Register and oversee faculty and student accounts.</p>
+    </div>
+
+    <div class="flex border-b border-gray-200 mb-8 space-x-8">
+        <button onclick="switchTab('students')" id="tab-btn-students" class="pb-4 font-bold text-lg transition-colors duration-200 {% if active_tab == 'students' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+            <i class="fas fa-user-graduate mr-2"></i> Manage Students
+        </button>
+        <button onclick="switchTab('facultys')" id="tab-btn-facultys" class="pb-4 font-bold text-lg transition-colors duration-200 {% if active_tab == 'facultys' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+            <i class="fas fa-chalkboard-teacher mr-2"></i> Manage Faculty
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-6">
+                <div class="bg-purple-700 px-6 py-4">
+                    <h2 class="text-white font-bold tracking-wide"><i class="fas fa-user-plus mr-2"></i> Register New User</h2>
+                </div>
+                <form method="POST" class="p-6">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_user">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Account Role <span class="text-red-500">*</span></label>
+                        <select name="role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="student" {% if active_tab == 'students' %}selected{% endif %}>Student</option>
+                            <option value="faculty" {% if active_tab == 'facultys' %}selected{% endif %}>Faculty</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Username <span class="text-red-500">*</span></label>
+                        <input type="text" name="username" required placeholder="e.g., john_doe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Email Address <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" required placeholder="john@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Temporary Password <span class="text-red-500">*</span></label>
+                        <input type="password" name="password" required placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-purple-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-900 transition shadow">Register Account</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2">
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800">Search Directory</h3>
+                <form method="GET" class="flex items-center w-2/3">
+                    <input type="hidden" name="tab" id="search-tab-input" value="{{ active_tab }}">
+                    <input type="text" name="q" value="{{ search_q }}" placeholder="Search username or email..." class="w-full px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none text-sm">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+
+            <div id="tab-content-students" class="{% if active_tab != 'students' %}hidden{% endif %}">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold text-blue-800"><i class="fas fa-user-graduate mr-2"></i> Registered Students</h3>
+                        <span class="bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded font-bold">{{ students.count }} Total</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white border-b border-gray-100">
+                                <tr class="text-gray-400 text-xs uppercase tracking-wider">
+                                    <th class="px-6 py-4 font-semibold">User Details</th>
+                                    <th class="px-6 py-4 font-semibold text-center">Date Joined</th>
+                                    <th class="px-6 py-4 font-semibold text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                {% for student in students %}
+                                <tr class="hover:bg-blue-50 transition">
+                                    <td class="px-6 py-4">
+                                        <p class="font-bold text-gray-800 text-sm">{{ student.username }}</p>
+                                        <p class="text-xs text-gray-500">{{ student.email }}</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-sm text-gray-600">{{ student.date_joined|date:"M d, Y" }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if student.is_active %}
+                                            <span class="text-xs font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i> Active</span>
+                                        {% else %}
+                                            <span class="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i> Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">No students found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-content-facultys" class="{% if active_tab != 'facultys' %}hidden{% endif %}">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-purple-50 border-b border-purple-100 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold text-purple-800"><i class="fas fa-chalkboard-teacher mr-2"></i> Registered Faculty</h3>
+                        <span class="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded font-bold">{{ faculty.count }} Total</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white border-b border-gray-100">
+                                <tr class="text-gray-400 text-xs uppercase tracking-wider">
+                                    <th class="px-6 py-4 font-semibold">User Details</th>
+                                    <th class="px-6 py-4 font-semibold text-center">Date Joined</th>
+                                    <th class="px-6 py-4 font-semibold text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                {% for fac in faculty %}
+                                <tr class="hover:bg-purple-50 transition">
+                                    <td class="px-6 py-4">
+                                        <p class="font-bold text-gray-800 text-sm">{{ fac.username }}</p>
+                                        <p class="text-xs text-gray-500">{{ fac.email }}</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-sm text-gray-600">{{ fac.date_joined|date:"M d, Y" }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if fac.is_active %}
+                                            <span class="text-xs font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i> Active</span>
+                                        {% else %}
+                                            <span class="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-full"><i class="fas fa-circle text-[8px] mr-1"></i> Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">No faculty members found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabName) {
+        // Update URL state
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tabName);
+        window.history.pushState({}, '', url);
+
+        // Update hidden search input so searches stay on the right tab
+        document.getElementById('search-tab-input').value = tabName;
+
+        // Hide all content
+        document.getElementById('tab-content-students').classList.add('hidden');
+        document.getElementById('tab-content-facultys').classList.add('hidden');
+        
+        // Reset button styles
+        document.getElementById('tab-btn-students').className = "pb-4 font-bold text-lg transition-colors duration-200 text-gray-500 hover:text-gray-700";
+        document.getElementById('tab-btn-facultys').className = "pb-4 font-bold text-lg transition-colors duration-200 text-gray-500 hover:text-gray-700";
+        
+        // Show active content and style button
+        document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-btn-' + tabName).className = "pb-4 font-bold text-lg transition-colors duration-200 text-blue-600 border-b-2 border-blue-600";
+    }
+</script>
+{% endblock %}

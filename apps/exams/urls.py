@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import exam_console, save_answer,submit_exam, exam_result, log_warning, admin_result_viewer, admin_exam_detail, add_question, create_exam, exam_lobby, question_bank, bulk_upload_questions ,ai_question_generator, report_question,faculty_reports, resolve_report
+from .views import exam_console, save_answer,submit_exam, exam_result, log_warning, admin_result_viewer, admin_exam_detail, add_question, create_exam, exam_lobby, question_bank, bulk_upload_questions ,ai_question_generator, report_question,faculty_reports, resolve_report, admin_exam_schedule,admin_create_exam
 
 urlpatterns = [
     path('lobby/<int:exam_id>/', exam_lobby, name='exam_lobby'),
@@ -20,4 +20,6 @@ urlpatterns = [
 
     path('faculty/reports/', faculty_reports, name='faculty_reports'),
     path('faculty/reports/resolve/<int:report_id>/', resolve_report, name='resolve_report'),
+    path('admin-dashboard/schedule/', admin_exam_schedule, name='admin_exam_schedule'),
+    path('admin-dashboard/create-exam/', admin_create_exam, name='admin_create_exam'),
 ]

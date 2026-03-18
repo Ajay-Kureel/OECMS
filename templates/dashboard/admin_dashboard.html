@@ -15,7 +15,7 @@
                     <i class="fas fa-poll w-5"></i>
                     <span>Exam Results & Logs</span>
                 </a>
-                <a href="#" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
+                <a href="{% url 'manage_users' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
                     <i class="fas fa-users"></i>
                     <span>Manage Users</span>
                 </a>
@@ -23,7 +23,7 @@
                     <i class="fas fa-book"></i>
                     <span>Courses & Subjects</span>
                 </a>
-                <a href="#" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
+                <a href="{% url 'admin_exam_schedule' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
                     <i class="fas fa-clock"></i>
                     <span>Exams Schedule</span>
                 </a>
@@ -37,7 +37,7 @@
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
             <button class="bg-primary text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">
-                <i class="fas fa-plus mr-2"></i> Create New Exam
+                <i class="fas fa-plus mr-2"></i> <a href="{% url 'admin_create_exam' %}" >Create New Exam</a>
             </button>
         </div>
 

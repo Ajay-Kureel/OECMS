@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Master Exam Schedule | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-[1400px] mx-auto py-8 px-4">
+    
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Master Exam Schedule</h1>
+            <p class="text-gray-500 mt-1">Global oversight of all active, upcoming, and past examinations.</p>
+        </div>
+        <div class="relative">
+            <input type="text" placeholder="Search exam ID or title..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg shadow-green-200 flex justify-between items-center transform hover:-translate-y-1 transition">
+            <div>
+                <p class="text-green-100 font-bold tracking-wide uppercase text-sm mb-1">Live Right Now</p>
+                <h2 class="text-4xl font-extrabold">{{ total_live }}</h2>
+            </div>
+            <i class="fas fa-satellite-dish text-5xl opacity-30 animate-pulse"></i>
+        </div>
+        
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200 flex justify-between items-center transform hover:-translate-y-1 transition">
+            <div>
+                <p class="text-blue-100 font-bold tracking-wide uppercase text-sm mb-1">Upcoming Scheduled</p>
+                <h2 class="text-4xl font-extrabold">{{ total_upcoming }}</h2>
+            </div>
+            <i class="fas fa-calendar-alt text-5xl opacity-30"></i>
+        </div>
+
+        <div class="bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-lg shadow-gray-300 flex justify-between items-center transform hover:-translate-y-1 transition">
+            <div>
+                <p class="text-gray-300 font-bold tracking-wide uppercase text-sm mb-1">Completed Exams</p>
+                <h2 class="text-4xl font-extrabold">{{ total_completed }}</h2>
+            </div>
+            <i class="fas fa-check-double text-5xl opacity-30"></i>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        <div class="bg-gray-50 rounded-2xl border border-gray-200 p-4 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h3 class="font-bold text-green-700 uppercase tracking-wider text-sm"><i class="fas fa-circle text-[10px] text-green-500 animate-pulse mr-2"></i> Live Exams</h3>
+            </div>
+            
+            <div class="space-y-4 flex-1">
+                {% for exam in live_exams %}
+                <div class="bg-white p-5 rounded-xl border border-green-200 shadow-sm border-l-4 border-l-green-500 relative group">
+                    <h4 class="font-bold text-gray-800 text-lg mb-1 pr-8">{{ exam.title }}</h4>
+                    <p class="text-xs font-bold text-gray-500 mb-3 bg-gray-100 inline-block px-2 py-1 rounded">{{ exam.subject.code }} | {{ exam.subject.name }}</p>
+                    
+                    <div class="flex justify-between text-xs text-gray-600 mb-2">
+                        <span><i class="fas fa-clock mr-1 text-green-500"></i> {{ exam.duration_minutes }} Mins</span>
+                        <span><i class="fas fa-user-tie mr-1 text-gray-400"></i> {{ exam.created_by.username|default:"Admin" }}</span>
+                    </div>
+                    
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2 mt-3">
+                        <div class="bg-green-500 h-1.5 rounded-full" style="width: 50%"></div>
+                    </div>
+                    <p class="text-[10px] text-center text-gray-400 font-medium">Ends at {{ exam.end_time|time:"h:i A" }}</p>
+
+                    <button class="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Emergency Stop">
+                        <i class="fas fa-stop-circle text-xl"></i>
+                    </button>
+                </div>
+                {% empty %}
+                <div class="text-center py-10 text-gray-400">
+                    <i class="fas fa-mug-hot text-4xl mb-3 opacity-50"></i>
+                    <p class="text-sm">No exams running right now.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if live_exams.has_other_pages %}
+            <div class="mt-4 flex justify-between items-center text-xs bg-white p-2 rounded-lg border shadow-sm">
+                {% if live_exams.has_previous %}
+                    <a href="?p_live={{ live_exams.previous_page_number }}&p_up={{ upcoming_exams.number }}&p_comp={{ completed_exams.number }}" class="px-2 py-1 text-green-600 hover:bg-green-50 rounded">Prev</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Prev</span>{% endif %}
+                <span class="font-bold text-gray-600">{{ live_exams.number }} / {{ live_exams.paginator.num_pages }}</span>
+                {% if live_exams.has_next %}
+                    <a href="?p_live={{ live_exams.next_page_number }}&p_up={{ upcoming_exams.number }}&p_comp={{ completed_exams.number }}" class="px-2 py-1 text-green-600 hover:bg-green-50 rounded">Next</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Next</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl border border-gray-200 p-4 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h3 class="font-bold text-blue-700 uppercase tracking-wider text-sm"><i class="fas fa-calendar-alt text-blue-500 mr-2"></i> Upcoming</h3>
+            </div>
+            
+            <div class="space-y-4 flex-1">
+                {% for exam in upcoming_exams %}
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow-md transition relative group">
+                    <h4 class="font-bold text-gray-800 text-lg mb-1 pr-8">{{ exam.title }}</h4>
+                    <p class="text-xs font-bold text-gray-500 mb-3 bg-gray-100 inline-block px-2 py-1 rounded">{{ exam.subject.code }}</p>
+                    
+                    <div class="bg-blue-50 rounded p-2 mb-3">
+                        <p class="text-xs text-blue-800 font-bold"><i class="fas fa-calendar-day mr-1"></i> {{ exam.start_time|date:"M d, Y" }}</p>
+                        <p class="text-xs text-blue-600 mt-1"><i class="fas fa-clock mr-1"></i> {{ exam.start_time|time:"h:i A" }} - {{ exam.end_time|time:"h:i A" }}</p>
+                    </div>
+
+                    <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition absolute top-4 right-4">
+                        <button class="text-gray-400 hover:text-blue-600" title="Reschedule"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-400 hover:text-red-600" title="Cancel Exam"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-10 text-gray-400">
+                    <i class="fas fa-calendar-times text-4xl mb-3 opacity-50"></i>
+                    <p class="text-sm">No upcoming exams scheduled.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if upcoming_exams.has_other_pages %}
+            <div class="mt-4 flex justify-between items-center text-xs bg-white p-2 rounded-lg border shadow-sm">
+                {% if upcoming_exams.has_previous %}
+                    <a href="?p_live={{ live_exams.number }}&p_up={{ upcoming_exams.previous_page_number }}&p_comp={{ completed_exams.number }}" class="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Prev</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Prev</span>{% endif %}
+                <span class="font-bold text-gray-600">{{ upcoming_exams.number }} / {{ upcoming_exams.paginator.num_pages }}</span>
+                {% if upcoming_exams.has_next %}
+                    <a href="?p_live={{ live_exams.number }}&p_up={{ upcoming_exams.next_page_number }}&p_comp={{ completed_exams.number }}" class="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Next</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Next</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl border border-gray-200 p-4 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h3 class="font-bold text-gray-600 uppercase tracking-wider text-sm"><i class="fas fa-check-double text-gray-400 mr-2"></i> Completed</h3>
+            </div>
+            
+            <div class="space-y-4 flex-1">
+                {% for exam in completed_exams %}
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm opacity-80 hover:opacity-100 transition">
+                    <h4 class="font-bold text-gray-700 text-lg mb-1">{{ exam.title }}</h4>
+                    <p class="text-xs text-gray-500 mb-3">{{ exam.subject.name }}</p>
+                    
+                    <div class="border-t pt-3 flex justify-between items-center">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase">{{ exam.end_time|date:"M d, Y" }}</span>
+                        <a href="{% url 'admin_exam_detail' exam.id %}" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1 px-3 rounded transition">
+                            Logs & Results
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-10 text-gray-400">
+                    <i class="fas fa-box-open text-4xl mb-3 opacity-50"></i>
+                    <p class="text-sm">No historical exams found.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if completed_exams.has_other_pages %}
+            <div class="mt-4 flex justify-between items-center text-xs bg-white p-2 rounded-lg border shadow-sm">
+                {% if completed_exams.has_previous %}
+                    <a href="?p_live={{ live_exams.number }}&p_up={{ upcoming_exams.number }}&p_comp={{ completed_exams.previous_page_number }}" class="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded">Prev</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Prev</span>{% endif %}
+                <span class="font-bold text-gray-600">{{ completed_exams.number }} / {{ completed_exams.paginator.num_pages }}</span>
+                {% if completed_exams.has_next %}
+                    <a href="?p_live={{ live_exams.number }}&p_up={{ upcoming_exams.number }}&p_comp={{ completed_exams.next_page_number }}" class="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded">Next</a>
+                {% else %}<span class="px-2 py-1 text-gray-300">Next</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

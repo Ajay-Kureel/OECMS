@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}Create University Exam | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="fixed bottom-8 right-8 bg-gray-900 text-white p-6 rounded-2xl shadow-2xl border border-gray-700 z-50 transform hover:scale-105 transition duration-300">
+    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Live Max Marks</p>
+    <div class="flex items-end space-x-2">
+        <span class="text-5xl font-extrabold text-blue-400" id="live-total-marks">0</span>
+        <span class="text-lg text-gray-500 mb-1">pts</span>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto py-8 px-4 relative">
+    
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Create University Exam</h1>
+            <p class="text-gray-500 mt-1">Configure multi-subject final examinations.</p>
+        </div>
+        <a href="{% url 'admin_exam_schedule' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Schedule
+        </a>
+    </div>
+
+    <form method="POST" class="space-y-8" id="examForm">
+        {% csrf_token %}
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h3 class="font-bold text-gray-800 mb-6 uppercase tracking-wide text-sm border-b pb-2"><i class="fas fa-info-circle text-blue-500 mr-2"></i> 1. Exam Configuration</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Exam Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" required placeholder="e.g., Final Semester Assessment 2026" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Primary Subject <span class="text-red-500">*</span></label>
+                    <select name="primary_subject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Select Primary Categorization --</option>
+                        {% for sub in subjects %}
+                            <option value="{{ sub.id }}">{{ sub.code }} - {{ sub.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Start Time <span class="text-red-500">*</span></label>
+                    <input type="datetime-local" name="start_time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">End Time <span class="text-red-500">*</span></label>
+                    <input type="datetime-local" name="end_time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Duration (Mins) <span class="text-red-500">*</span></label>
+                    <input type="number" name="duration_minutes" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Passing Marks <span class="text-red-500">*</span></label>
+                    <input type="number" name="passing_marks" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="proctoring_enabled" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer">
+                        <span class="text-blue-800 font-bold text-sm uppercase tracking-wide">Enable AI Camera Surveillance</span>
+                    </label>
+                </div>
+                
+            </div>
+            <div class="mt-6">
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Exam Instructions <span class="text-red-500">*</span></label>
+                    <textarea name="instructions" required rows="4" placeholder="1. Ensure stable internet connection.&#10;2. Do not switch tabs.&#10;3. Webcam monitored by AI." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                    <p class="text-[10px] text-gray-400 mt-1">These rules will be displayed to the student in the waiting lobby.</p>
+                </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h3 class="font-bold text-gray-800 mb-6 uppercase tracking-wide text-sm border-b pb-2"><i class="fas fa-layer-group text-purple-500 mr-2"></i> 2. Source Question Banks</h3>
+            <p class="text-sm text-gray-500 mb-4">Select the subjects you want to pull questions from. A tab will generate for each selected subject.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for sub in subjects %}
+                <label class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                    <input type="checkbox" class="subject-selector w-4 h-4 text-purple-600 rounded" value="{{ sub.id }}">
+                    <span class="font-bold text-gray-700 text-sm">{{ sub.code }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8" id="question-builder-section" style="display: none;">
+            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2"><i class="fas fa-tasks text-teal-500 mr-2"></i> 3. Build Question Paper</h3>
+            
+            <div class="flex border-b border-gray-200 mb-6 space-x-6 overflow-x-auto" id="tab-buttons-container">
+                </div>
+
+            <div id="tab-content-container">
+                </div>
+        </div>
+
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:bg-blue-700 transition transform hover:-translate-y-1 text-lg">
+                <i class="fas fa-satellite-dish mr-2"></i> Deploy Final Exam
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Load the secure JSON data passed from Django
+    const subjectsData = JSON.parse('{{ subjects_json|escapejs }}');
+    
+    const subjectSelectors = document.querySelectorAll('.subject-selector');
+    const builderSection = document.getElementById('question-builder-section');
+    const tabsContainer = document.getElementById('tab-buttons-container');
+    const contentContainer = document.getElementById('tab-content-container');
+    const liveTotalDisplay = document.getElementById('live-total-marks');
+
+    // 1. Listen for Subject Selection
+    subjectSelectors.forEach(checkbox => {
+        checkbox.addEventListener('change', generateTabs);
+    });
+
+    function generateTabs() {
+        tabsContainer.innerHTML = '';
+        contentContainer.innerHTML = '';
+        
+        const selectedIds = Array.from(subjectSelectors)
+                                 .filter(cb => cb.checked)
+                                 .map(cb => cb.value);
+
+        if (selectedIds.length === 0) {
+            builderSection.style.display = 'none';
+            return;
+        }
+
+        builderSection.style.display = 'block';
+
+        selectedIds.forEach((id, index) => {
+            const subject = subjectsData[id];
+            const isFirst = index === 0;
+
+            // Create Tab Button
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `tab-btn pb-3 font-bold text-sm transition-colors duration-200 whitespace-nowrap ${isFirst ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-500 hover:text-gray-700'}`;
+            btn.innerHTML = `<i class="fas fa-folder-open mr-2"></i> ${subject.name}`;
+            btn.onclick = () => switchTab(id);
+            tabsContainer.appendChild(btn);
+
+            // Create Tab Content Panel
+            const panel = document.createElement('div');
+            panel.id = `panel-${id}`;
+            panel.className = `tab-panel space-y-3 max-h-96 overflow-y-auto pr-2 ${isFirst ? 'block' : 'hidden'}`;
+            
+            if (subject.questions.length === 0) {
+                panel.innerHTML = `<p class="text-gray-400 text-center py-8">No questions available in this bank.</p>`;
+            } else {
+                subject.questions.forEach(q => {
+                    panel.innerHTML += `
+                        <div class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:border-teal-400 transition">
+                            <input type="checkbox" name="selected_questions" value="${q.id}" id="chk_${q.id}" class="q-checkbox w-5 h-5 text-teal-600 rounded border-gray-300 focus:ring-teal-500 cursor-pointer" onchange="toggleMarks('${q.id}')">
+                            
+                            <label for="chk_${q.id}" class="flex-1 ml-4 cursor-pointer">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Diff: ${q.difficulty}</span>
+                                <span class="text-gray-800 font-medium text-sm">${q.text}</span>
+                            </label>
+                            
+                            <div class="ml-4 flex items-center space-x-2 border-l pl-4">
+                                <span class="text-xs font-bold text-gray-500 uppercase">Marks:</span>
+                                <input type="number" name="marks_${q.id}" id="marks_${q.id}" value="1" min="1" class="m-input w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-200 disabled:text-gray-400 font-bold text-center" disabled oninput="calculateTotal()">
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            contentContainer.appendChild(panel);
+        });
+    }
+
+    // 2. Tab Switching Logic
+    function switchTab(activeId) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+            b.classList.add('text-gray-500');
+        });
+
+        document.getElementById(`panel-${activeId}`).classList.remove('hidden');
+        // Find the button that matches the clicked tab (based on index)
+        const selectedIndex = Array.from(subjectSelectors).filter(cb => cb.checked).findIndex(cb => cb.value === activeId);
+        const activeBtn = tabsContainer.children[selectedIndex];
+        activeBtn.classList.remove('text-gray-500');
+        activeBtn.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+    }
+
+    // 3. Toggle Inputs and Calculate Total
+    window.toggleMarks = function(qId) {
+        const checkbox = document.getElementById(`chk_${qId}`);
+        const input = document.getElementById(`marks_${qId}`);
+        
+        if (checkbox.checked) {
+            input.disabled = false;
+            input.focus();
+            input.select();
+        } else {
+            input.disabled = true;
+            input.value = "1"; // Reset
+        }
+        calculateTotal(); // Update the floating widget
+    }
+
+    window.calculateTotal = function() {
+        let total = 0;
+        // Find all CHECKED checkboxes in the DOM
+        const checkedBoxes = document.querySelectorAll('.q-checkbox:checked');
+        
+        checkedBoxes.forEach(box => {
+            const qId = box.value;
+            const marksValue = document.getElementById(`marks_${qId}`).value;
+            total += parseInt(marksValue) || 0;
+        });
+
+        liveTotalDisplay.innerText = total;
+        
+        // Add a tiny animation pop to the widget
+        liveTotalDisplay.parentElement.parentElement.classList.add('scale-110', 'border-blue-500');
+        setTimeout(() => {
+            liveTotalDisplay.parentElement.parentElement.classList.remove('scale-110', 'border-blue-500');
+        }, 200);
+    }
+</script>
+{% endblock %}
