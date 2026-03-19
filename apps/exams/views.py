@@ -666,3 +666,79 @@ def admin_create_exam(request):
         'subjects_json': json.dumps(subjects_data, cls=DjangoJSONEncoder)
     }
     return render(request, 'exams/admin_create_exam.html', context)
+
+#faculty_manages exams
+
+@login_required
+@faculty_required
+def manage_exams(request):
+    # Current time nikalna taaki comparison ho sake
+    now = timezone.now()
+    
+    # Sirf wahi exams jo is faculty ne banaye hain
+    exams = Exam.objects.filter(created_by=request.user).order_by('-start_time')
+
+    if request.method == 'POST':
+        exam_id = request.POST.get('exam_id')
+        action = request.POST.get('action')
+        exam = get_object_or_404(Exam, id=exam_id, created_by=request.user)
+
+        if action == 'delete':
+            # Robust Check: Kya exam abhi chal raha hai?
+            # Agar start_time ho chuka hai aur end_time abhi baaki hai
+            if exam.start_time <= now <= exam.end_time:
+                messages.error(request, "Ongoing (LIVE) exams cannot be deleted! Please wait for the exam to end.")
+            else:
+                exam_name = exam.title
+                exam.delete()
+                messages.warning(request, f"Exam '{exam_name}' has been successfully deleted.")
+        
+        return redirect('manage_exams')
+
+    # 'now' ko context mein bhejna sabse zaroori hai status logic ke liye
+    return render(request, 'exams/manage_exams.html', {
+        'exams': exams, 
+        'now': now
+    })
+
+#edit exams if faculty wants
+
+@login_required
+@faculty_required
+def edit_exam(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id, created_by=request.user)
+    # Sirf wahi questions dikhayenge jo faculty ke assigned subjects ke hain
+    my_subjects = Subject.objects.filter(faculty=request.user)
+    questions = Question.objects.filter(subject__in=my_subjects)
+    
+    # Pehle se selected questions ki list
+    selected_questions = exam.questions.all()
+
+    if request.method == 'POST':
+        exam.title = request.POST.get('title')
+        exam.description = request.POST.get('description')
+        exam.instructions = request.POST.get('instructions')
+        exam.start_time = request.POST.get('start_time')
+        exam.end_time = request.POST.get('end_time')
+        exam.duration_minutes = request.POST.get('duration')
+        exam.passing_marks = request.POST.get('passing_marks')
+        exam.save()
+
+        # Questions update karne ka logic
+        exam.questions.clear() # Purane hatao
+        selected_q_ids = request.POST.getlist('questions')
+        for q_id in selected_q_ids:
+            q = Question.objects.get(id=q_id)
+            marks = request.POST.get(f'marks_{q_id}', 1)
+            # Aapke m2m 'through' model ke hisaab se link karein
+            from .models import ExamQuestion
+            ExamQuestion.objects.create(exam=exam, question=q, marks=marks)
+
+        messages.success(request, "Exam updated successfully!")
+        return redirect('manage_exams')
+
+    return render(request, 'exams/edit_exam.html', {
+        'exam': exam,
+        'questions': questions,
+        'selected_questions': selected_questions
+    })
