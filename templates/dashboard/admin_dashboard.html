@@ -1,128 +1,203 @@
 {% extends 'base.html' %}
 
-{% block title %}Admin Dashboard | ExamControl{% endblock %}
+{% block title %}Admin Control Center | ExamControl{% endblock %}
 
 {% block content %}
-<div class="flex h-[calc(100vh-80px)]"> <aside class="w-64 bg-white shadow-lg border-r hidden md:block">
-        <div class="p-6">
-            <h2 class="text-xs uppercase text-gray-400 font-bold tracking-wider mb-4">Core Modules</h2>
-            <nav class="space-y-2">
-                <a href="#" class="flex items-center space-x-3 text-primary bg-blue-50 px-4 py-3 rounded-lg font-medium">
-                    <i class="fas fa-chart-pie"></i>
+<div id="sidebarOverlay" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity" onclick="toggleSidebar()"></div>
+
+<div class="flex h-[calc(100vh-72px)] overflow-hidden relative bg-gray-50 font-sans"> 
+    
+    <aside id="sidebar" class="absolute inset-y-0 left-0 z-50 w-72 bg-white/80 backdrop-blur-xl border-r border-gray-100 shadow-2xl lg:shadow-none transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out flex flex-col">
+        
+        <div class="flex items-center justify-between p-6 lg:hidden">
+            <span class="text-sm font-bold tracking-widest text-gray-400 uppercase">Menu</span>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-6 pt-2 lg:pt-8 flex-1 overflow-y-auto">
+            <h2 class="text-[10px] uppercase text-gray-400 font-extrabold tracking-widest mb-4 ml-2">Core Modules</h2>
+            <nav class="space-y-1.5">
+                <a href="#" class="flex items-center space-x-3 text-blue-600 bg-blue-50/80 px-4 py-3.5 rounded-2xl font-bold shadow-sm border border-blue-100/50">
+                    <i class="fas fa-chart-pie w-5 text-center"></i>
                     <span>Overview</span>
                 </a>
-                <a href="{% url 'admin_results' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 hover:text-primary px-4 py-3 rounded-lg transition font-medium">
-                    <i class="fas fa-poll w-5"></i>
+                <a href="{% url 'admin_results' %}" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 hover:text-blue-600 px-4 py-3.5 rounded-2xl transition-all font-semibold group">
+                    <i class="fas fa-poll w-5 text-center group-hover:scale-110 transition-transform"></i>
                     <span>Exam Results & Logs</span>
                 </a>
-                <a href="{% url 'manage_users' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
-                    <i class="fas fa-users"></i>
+                <a href="{% url 'manage_users' %}" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 hover:text-blue-600 px-4 py-3.5 rounded-2xl transition-all font-semibold group">
+                    <i class="fas fa-users w-5 text-center group-hover:scale-110 transition-transform"></i>
                     <span>Manage Users</span>
                 </a>
-                <a href="{% url 'manage_subjects' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
-                    <i class="fas fa-book"></i>
+                <a href="{% url 'manage_subjects' %}" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 hover:text-blue-600 px-4 py-3.5 rounded-2xl transition-all font-semibold group">
+                    <i class="fas fa-book w-5 text-center group-hover:scale-110 transition-transform"></i>
                     <span>Courses & Subjects</span>
                 </a>
-                <a href="{% url 'admin_exam_schedule' %}" class="flex items-center space-x-3 text-gray-600 hover:bg-gray-50 px-4 py-3 rounded-lg transition">
-                    <i class="fas fa-clock"></i>
+                <a href="{% url 'admin_exam_schedule' %}" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 hover:text-blue-600 px-4 py-3.5 rounded-2xl transition-all font-semibold group">
+                    <i class="fas fa-clock w-5 text-center group-hover:scale-110 transition-transform"></i>
                     <span>Exams Schedule</span>
                 </a>
-
             </nav>
         </div>
     </aside>
 
-    <main class="flex-1 p-8 overflow-y-auto bg-gray-50">
+    <main class="flex-1 p-4 lg:p-10 overflow-y-auto w-full">
         
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-            <button class="bg-primary text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">
-                <i class="fas fa-plus mr-2"></i> <a href="{% url 'admin_create_exam' %}" >Create New Exam</a>
+        <div class="lg:hidden flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+            <h1 class="text-xl font-extrabold text-gray-800">Admin Control</h1>
+            <button onclick="toggleSidebar()" class="text-gray-600 focus:outline-none p-2 bg-gray-50 rounded-lg border">
+                <i class="fas fa-bars"></i>
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                <div class="p-4 bg-blue-100 text-primary rounded-full mr-4">
-                    <i class="fas fa-user-graduate text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Total Students</p>
-                    <h3 class="text-2xl font-bold">{{ total_students }}</h3>
+        <div class="hidden lg:flex justify-between items-end mb-10">
+            <div>
+                <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Dashboard Overview</h1>
+                <p class="text-gray-500 mt-1 font-medium">Welcome back, system administrator.</p>
+            </div>
+            
+            <a href="{% url 'admin_create_exam' %}" class="group relative inline-flex items-center justify-center px-6 py-3 font-bold text-white transition-all duration-200 bg-blue-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-200 hover:-translate-y-1">
+                <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i> Create New Exam
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            
+            <div class="relative bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-3xl shadow-lg shadow-blue-200/50 text-white overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-blue-100 font-bold tracking-wider uppercase text-xs mb-1">Total Students</p>
+                        <h3 class="text-5xl font-black">{{ total_students }}</h3>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                        <i class="fas fa-user-graduate text-2xl"></i>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                <div class="p-4 bg-green-100 text-green-600 rounded-full mr-4">
-                    <i class="fas fa-chalkboard-teacher text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Active Faculty</p>
-                    <h3 class="text-2xl font-bold">{{ total_faculty }}</h3>
+            <div class="relative bg-gradient-to-br from-emerald-400 to-teal-600 p-8 rounded-3xl shadow-lg shadow-emerald-200/50 text-white overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-emerald-100 font-bold tracking-wider uppercase text-xs mb-1">Active Faculty</p>
+                        <h3 class="text-5xl font-black">{{ total_faculty }}</h3>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                        <i class="fas fa-chalkboard-teacher text-2xl"></i>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                <div class="p-4 bg-purple-100 text-purple-600 rounded-full mr-4">
-                    <i class="fas fa-file-alt text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Exams Today</p>
-                    <h3 class="text-2xl font-bold">{{ active_exams }}</h3>
+            <div class="relative bg-gradient-to-br from-purple-500 to-indigo-600 p-8 rounded-3xl shadow-lg shadow-purple-200/50 text-white overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-purple-100 font-bold tracking-wider uppercase text-xs mb-1">Exams Today</p>
+                        <h3 class="text-5xl font-black">{{ active_exams }}</h3>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                        <i class="fas fa-file-signature text-2xl"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b">
-                <h3 class="font-bold text-gray-800">Recent Registrations</h3>
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden">
+            <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-lg">Recent Registrations</h3>
+                <button class="text-gray-400 hover:text-blue-600 transition"><i class="fas fa-ellipsis-h"></i></button>
             </div>
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="bg-gray-50 text-gray-600 text-sm uppercase">
-                        <th class="px-6 py-3">User</th>
-                        <th class="px-6 py-3">Role</th>
-                        <th class="px-6 py-3">Date</th>
-                        <th class="px-6 py-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y">
-                    {% for u in recent_users %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 font-medium text-gray-800">
-                            {{ u.first_name }} {{ u.last_name }}
-                            <span class="block text-xs text-gray-500">{{ u.username }}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            {% if u.role == 'student' %}
-                                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold uppercase tracking-wide">Student</span>
-                            {% elif u.role == 'faculty' %}
-                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold uppercase tracking-wide">Faculty</span>
-                            {% else %}
-                                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold uppercase tracking-wide">Admin</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ u.date_joined|date:"M d, Y" }}</td>
-                        <td class="px-6 py-4">
-                            {% if u.is_active %}
-                                <span class="text-green-600 font-semibold"><i class="fas fa-circle text-[8px] mr-1"></i> Active</span>
-                            {% else %}
-                                <span class="text-red-500 font-semibold"><i class="fas fa-circle text-[8px] mr-1"></i> Inactive</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                            <i class="fas fa-users-slash text-3xl mb-2 text-gray-300"></i>
-                            <p>No recent registrations found.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50/50 text-gray-400 text-xs uppercase tracking-widest font-bold">
+                            <th class="px-8 py-4">User Details</th>
+                            <th class="px-8 py-4">Account Role</th>
+                            <th class="px-8 py-4">Date Joined</th>
+                            <th class="px-8 py-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for u in recent_users %}
+                        <tr class="hover:bg-gray-50/80 transition-colors duration-200 group">
+                            <td class="px-8 py-5 flex items-center space-x-4">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-gray-100 to-gray-200 text-gray-600 flex items-center justify-center font-bold shadow-inner border border-white">
+                                    {{ u.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">{{ u.first_name }} {{ u.last_name }}</p>
+                                    <p class="text-xs text-gray-400 font-medium mt-0.5">@{{ u.username }}</p>
+                                </div>
+                            </td>
+                            <td class="px-8 py-5">
+                                {% if u.role == 'student' %}
+                                    <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-blue-100">Student</span>
+                                {% elif u.role == 'faculty' %}
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100">Faculty</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-purple-100">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-5 text-sm font-semibold text-gray-500">
+                                {{ u.date_joined|date:"M d, Y" }}
+                            </td>
+                            <td class="px-8 py-5 text-right">
+                                {% if u.is_active %}
+                                    <span class="inline-flex items-center text-emerald-500 font-bold text-sm bg-emerald-50 px-3 py-1 rounded-full">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> Active
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center text-gray-400 font-bold text-sm bg-gray-50 px-3 py-1 rounded-full">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span> Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-8 py-16 text-center">
+                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
+                                    <i class="fas fa-users-slash text-2xl text-gray-300"></i>
+                                </div>
+                                <p class="text-gray-500 font-medium">No recent registrations found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="lg:hidden mt-6">
+            <a href="{% url 'admin_create_exam' %}" class="flex items-center justify-center w-full px-6 py-4 font-bold text-white bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                <i class="fas fa-plus mr-2"></i> Create New Exam
+            </a>
         </div>
 
     </main>
 </div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        // Toggle Sidebar slide
+        sidebar.classList.toggle('-translate-x-full');
+        
+        // Toggle Overlay visibility
+        if (overlay.classList.contains('hidden')) {
+            overlay.classList.remove('hidden');
+            // Small delay to allow display:block to apply before fading in
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        } else {
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 300); // Wait for transition
+        }
+    }
+</script>
 {% endblock %}
