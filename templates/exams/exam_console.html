@@ -146,7 +146,7 @@
             }
         }
 
-// 3. The Upgraded Surveillance Engine (with Head Rotation)
+        // 3. The Upgraded Surveillance Engine (with Trigonometry & Geometric Ratios)
         async function scanFace() {
             if (!aiModel || !video.srcObject) return;
 
@@ -157,34 +157,60 @@
             let warningMessage = "";
 
             if (predictions.length === 0) {
-                // Rule 1: Left the camera frame
                 violationDetected = true;
                 warningMessage = "WARNING: No face detected in frame!";
             } else if (predictions.length > 1) {
-                // Rule 2: Multiple people
                 violationDetected = true;
                 warningMessage = "WARNING: Multiple faces detected!";
             } else {
-                // Rule 3: Head Rotation Tracking (Geometry Approximation)
                 const landmarks = predictions[0].landmarks;
                 
                 // BlazeFace landmarks array: [rightEye, leftEye, nose, mouth, rightEar, leftEar]
                 const rightEye = landmarks[0];
                 const leftEye = landmarks[1];
                 const nose = landmarks[2];
+                const mouth = landmarks[3];
 
-                // Calculate Euclidean distance from nose to each eye
-                const distRightEyeToNose = Math.sqrt(Math.pow(rightEye[0] - nose[0], 2) + Math.pow(rightEye[1] - nose[1], 2));
-                const distLeftEyeToNose = Math.sqrt(Math.pow(leftEye[0] - nose[0], 2) + Math.pow(leftEye[1] - nose[1], 2));
+                // --- MATH: Calculate Anchor Points ---
+                // 1. Midpoint between eyes (Center Anchor)
+                const eyeMidX = (rightEye[0] + leftEye[0]) / 2;
+                const eyeMidY = (rightEye[1] + leftEye[1]) / 2;
 
-                // Calculate the ratio of the distances
-                // Looking straight ahead = ~1.0
-                const ratio = distLeftEyeToNose / distRightEyeToNose;
+                // 2. Inter-ocular distance (Scale Factor for depth invariance)
+                const eyeDist = Math.sqrt(Math.pow(leftEye[0] - rightEye[0], 2) + Math.pow(leftEye[1] - rightEye[1], 2));
 
-                // If ratio is > 2.0 (looking hard left) or < 0.5 (looking hard right)
-                if (ratio > 2.2 || ratio < 0.45) {
+                // --- MATH: Calculate Rotations ---
+                // 1. YAW (Left/Right)
+                // Normalized horizontal offset of the nose from the eye center
+                const yaw = (nose[0] - eyeMidX) / eyeDist;
+
+                // 2. PITCH (Up/Down)
+                // Ratio of vertical distances: (Eyes to Nose) vs (Nose to Mouth)
+                const eyeToNoseY = nose[1] - eyeMidY;
+                const noseToMouthY = mouth[1] - nose[1];
+                const pitch = eyeToNoseY / noseToMouthY;
+
+                // 3. ROLL (Head Tilt)
+                // Trigonometric angle of the eyes relative to the horizon
+                const deltaY = rightEye[1] - leftEye[1];
+                const deltaX = rightEye[0] - leftEye[0];
+                const angleInDegrees = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+                const roll = Math.abs(angleInDegrees);
+
+                // --- ENFORCE THRESHOLDS ---
+                // You may need to slightly tweak these decimal numbers based on your webcam angle
+                if (Math.abs(yaw) > 0.45) { 
+                    // Looking too far left or right
                     violationDetected = true;
-                    warningMessage = "WARNING: Suspicious head rotation detected! Please look at the screen.";
+                    warningMessage = "WARNING: Suspicious Left/Right head movement!";
+                } else if (pitch > 1.6 || pitch < 0.4) { 
+                    // Looking too far down (>1.6) or too far up (<0.4)
+                    violationDetected = true;
+                    warningMessage = "WARNING: Suspicious Up/Down head movement!";
+                } else if (roll > 20 && roll < 160) { 
+                    // Tilting head sideways (normal is near 0 or 180 degrees)
+                    violationDetected = true;
+                    warningMessage = "WARNING: Abnormal head tilt detected!";
                 }
             }
 
