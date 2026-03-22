@@ -24,6 +24,7 @@
             {% csrf_token %}
             
             <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">1. Basic Information</h3>
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
                     <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Exam Title <span class="text-red-500">*</span></label>
@@ -34,8 +35,24 @@
                     {{ form.subject }}
                 </div>
             </div>
+            <h3 class="font-bold text-gray-800 mb-4 mt-8 uppercase tracking-wide text-sm border-b pb-2">2. Target Audience (Optional)</h3>
+            <p class="text-xs text-gray-500 mb-4">Leave these fields blank if the exam applies to all students taking this subject.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Target Course</label>
+                    {{ form.target_course }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Target Year</label>
+                    {{ form.target_year }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Target Section</label>
+                    {{ form.target_section }}
+                </div>
+            </div>
 
-            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">2. Scheduling & Duration</h3>
+            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">3. Scheduling & Duration</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div>
                     <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Start Time <span class="text-red-500">*</span></label>
@@ -51,7 +68,7 @@
                 </div>
             </div>
 
-            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">3. Evaluation Rules</h3>
+            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">4. Evaluation Rules</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
                     <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Passing Marks <span class="text-red-500">*</span></label>
@@ -65,14 +82,14 @@
                     </label>
                 </div>
             </div>
-            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">4. Exam Instructions</h3>
+            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">5. Exam Instructions</h3>
             <div class="mb-8">
                 <label class="block text-gray-700 font-bold mb-2 text-sm uppercase">Instructions for Students <span class="text-red-500">*</span></label>
                 <p class="text-xs text-gray-500 mb-2">These rules will be displayed in the waiting lobby before the exam starts.</p>
                 {{ form.instructions }}
             </div>
 
-            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">5. Build Question Paper</h3>
+            <h3 class="font-bold text-gray-800 mb-4 uppercase tracking-wide text-sm border-b pb-2">.6 Build Question Paper</h3>
             <div class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-inner">
                 <label class="block text-gray-700 font-bold mb-4 text-sm uppercase">Select Questions & Assign Marks <span class="text-red-500">*</span></label>
 

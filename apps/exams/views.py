@@ -19,7 +19,7 @@ import random
 
 from apps.accounts.decorators import admin_required,  faculty_required, student_required
 
-from exams.models import Exam, StudentExam, StudentResponse, Question, ExamQuestion,QuestionReport
+from exams.models import Exam, StudentExam, StudentResponse, Question, ExamQuestion,QuestionReport, Course
 from academics.models import Subject
 
 from exams.forms import QuestionForm, ExamForm
@@ -612,7 +612,9 @@ def admin_exam_schedule(request):
 @admin_required
 def admin_create_exam(request):
     # Fetch all subjects and prefetch their questions for lightning-fast performance
+
     subjects = Subject.objects.prefetch_related('questions').all()
+    courses = Course.objects.all() # NEW: Fetch courses for the dropdown
     
     if request.method == 'POST':
         title = request.POST.get('title')
@@ -624,13 +626,19 @@ def admin_create_exam(request):
         instructions = request.POST.get('instructions')
         proctoring = request.POST.get('proctoring_enabled') == 'on'
         
+        # NEW: Capture targeting data
+        target_course_id = request.POST.get('target_course')
+        target_year = request.POST.get('target_year')
+        target_section = request.POST.get('target_section')
+        
         if not primary_subject_id:
             messages.error(request, "A Primary Subject is required.")
             return redirect('admin_create_exam')
             
         primary_subject = Subject.objects.get(id=primary_subject_id)
+        target_course = Course.objects.get(id=target_course_id) if target_course_id else None
         
-        # 1. Create the Exam Record
+        # Create the Exam Record with Targeting Data
         exam = Exam.objects.create(
             title=title,
             subject=primary_subject,
@@ -640,7 +648,11 @@ def admin_create_exam(request):
             duration_minutes=duration,
             passing_marks=passing_marks,
             instructions=instructions,
-            proctoring_enabled=proctoring
+            proctoring_enabled=proctoring,
+            # Injecting the targeting fields
+            target_course=target_course,
+            target_year=int(target_year) if target_year else None,
+            target_section=target_section
         )
         
         # 2. Extract selected questions and their specific marks
@@ -663,6 +675,7 @@ def admin_create_exam(request):
 
     context = {
         'subjects': subjects,
+        'courses': courses,
         'subjects_json': json.dumps(subjects_data, cls=DjangoJSONEncoder)
     }
     return render(request, 'exams/admin_create_exam.html', context)

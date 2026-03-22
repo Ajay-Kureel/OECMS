@@ -30,7 +30,7 @@
                     
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Account Role <span class="text-red-500">*</span></label>
-                        <select name="role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                        <select name="role" id="roleSelector" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white" onchange="toggleStudentFields()">
                             <option value="student" {% if active_tab == 'students' %}selected{% endif %}>Student</option>
                             <option value="faculty" {% if active_tab == 'facultys' %}selected{% endif %}>Faculty</option>
                         </select>
@@ -46,13 +46,40 @@
                         <input type="email" name="email" required placeholder="john@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
 
+                    <div id="studentFields" class="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                        <p class="text-xs font-bold text-blue-800 uppercase mb-3"><i class="fas fa-graduation-cap mr-1"></i> Academic Identity</p>
+                        
+                        <div class="mb-3">
+                            <label class="block text-gray-700 font-bold mb-1 text-xs">Course</label>
+                            <select name="course" class="w-full px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                                <option value="">-- Select Course --</option>
+                                {% for c in courses %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-1 text-xs">Year</label>
+                                <input type="number" name="year" min="1" max="5" placeholder="e.g., 2" class="w-full px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-1 text-xs">Section</label>
+                                <input type="text" name="section" placeholder="e.g., BCA11" class="w-full px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-6">
                         <label class="block text-gray-700 font-bold mb-2 text-xs uppercase">Temporary Password <span class="text-red-500">*</span></label>
                         <input type="password" name="password" required placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
 
-                    <button type="submit" class="w-full bg-purple-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-900 transition shadow">Register Account</button>
+                    <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-900 transition shadow">Register Account</button>
                 </form>
+
+                
             </div>
         </div>
 
@@ -173,5 +200,18 @@
         document.getElementById('tab-content-' + tabName).classList.remove('hidden');
         document.getElementById('tab-btn-' + tabName).className = "pb-4 font-bold text-lg transition-colors duration-200 text-blue-600 border-b-2 border-blue-600";
     }
+
+    function toggleStudentFields() {
+        const role = document.getElementById('roleSelector').value;
+        const studentFields = document.getElementById('studentFields');
+        if (role === 'student') {
+            studentFields.style.display = 'block';
+        } else {
+            studentFields.style.display = 'none';
+        }
+    }
+    // Run once on page load to set initial state
+    window.onload = toggleStudentFields;
 </script>
+
 {% endblock %}

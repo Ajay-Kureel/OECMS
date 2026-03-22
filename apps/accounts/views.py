@@ -134,6 +134,31 @@ def faculty_dashboard(request):
 @student_required
 def student_dashboard(request):
     now = timezone.now()
+    user = request.user
+    # Create a filter that matches the exam's targets to the user's profile
+    # If a target field on the exam is NULL, it means it applies to everyone in that category!
+    cohort_filter = Q(
+        (Q(target_course=user.course) | Q(target_course__isnull=True)) &
+        (Q(target_year=user.year) | Q(target_year__isnull=True)) &
+        (Q(target_section__iexact=user.section) | Q(target_section__isnull=True) | Q(target_section=""))
+    )
+
+    # Apply the cohort filter to Active Exams
+    active_exams = Exam.objects.filter(
+        cohort_filter,
+        start_time__lte=now,
+        end_time__gte=now
+    ).exclude(
+        # Don't show exams the student has already submitted
+        studentexam__student=user, studentexam__status='submitted'
+    ).order_by('end_time')
+
+    # Apply the cohort filter to Upcoming Exams
+    upcoming_exams = Exam.objects.filter(
+        cohort_filter,
+        start_time__gt=now
+    ).order_by('start_time')[:5]
+
 
     # The threshold for when an exam becomes "Active" (Lobby opens 20 mins early)
     lobby_threshold = now + timedelta(minutes=20)
@@ -143,6 +168,7 @@ def student_dashboard(request):
         student=request.user, 
         status='submitted'
     ).values_list('exam_id', flat=True)
+
 
     # 2. Active Exams: Lobby is open (start_time is within the next 20 mins or past) AND exam hasn't ended
     active_exams = Exam.objects.filter(
@@ -154,6 +180,7 @@ def student_dashboard(request):
     upcoming_exams = Exam.objects.filter(
         start_time__gt=lobby_threshold
     ).order_by('start_time')
+
 
     # 4. Past Results
     past_results = StudentExam.objects.filter(
@@ -175,7 +202,7 @@ def student_dashboard(request):
 @admin_required
 def manage_users(request):
     search_q = request.GET.get('q', '')
-    active_tab = request.GET.get('tab', 'students') # Default to students tab
+    active_tab = request.GET.get('tab', 'students')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -186,20 +213,23 @@ def manage_users(request):
             password = request.POST.get('password')
             role = request.POST.get('role')
 
-            # 1. Check if username already exists
             if User.objects.filter(username=username).exists():
                 messages.error(request, f'Username "{username}" is already taken.')
             else:
-                # 2. Securely create the user (this hashes the password!)
                 user = User.objects.create_user(username=username, email=email, password=password)
-                
-                # 3. Assign the custom role and save
                 user.role = role
-                user.save()
                 
+                # NEW: If it's a student, save their academic identity
+                if role == 'student':
+                    course_id = request.POST.get('course')
+                    if course_id:
+                        user.course = Course.objects.get(id=course_id)
+                    user.year = request.POST.get('year')
+                    user.section = request.POST.get('section')
+                
+                user.save()
                 messages.success(request, f'{role.capitalize()} "{username}" registered successfully!')
             
-            # Keep them on the tab of the role they just created
             return redirect(f'/accounts/admin-dashboard/users/?tab={role}s')
 
     # Fetch Data & Apply Search Filters

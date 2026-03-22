@@ -31,7 +31,7 @@ class ExamForm(forms.ModelForm):
     class Meta:
         model = Exam
         # REMOVED 'total_marks' and 'questions' from here
-        fields = ['title', 'subject', 'start_time', 'end_time', 'duration_minutes', 'passing_marks', 'proctoring_enabled','instructions']
+        fields = ['title', 'subject', 'start_time', 'end_time', 'duration_minutes', 'passing_marks', 'proctoring_enabled','instructions','target_course', 'target_year', 'target_section']
         widgets = {
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),

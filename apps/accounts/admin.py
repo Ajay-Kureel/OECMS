@@ -5,20 +5,30 @@ from .models import CustomUser
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     
-    # Fields to display in the list view (the table of users)
-    list_display = ['username', 'email', 'role', 'is_approved', 'is_staff']
+    # 1. Update the columns shown in the main list view
+    list_display = ('username', 'email', 'role', 'course', 'year', 'is_approved', 'is_staff')
     
-    # Fields to filter by on the right sidebar
-    list_filter = ['role', 'is_approved', 'is_staff']
+    # 2. Add helpful filters to the right sidebar
+    list_filter = ('role', 'is_approved', 'course', 'year', 'is_staff')
     
-    # Organize fields in the "Edit User" form
+    # 3. Add the fields to the "Edit User" screen
     fieldsets = UserAdmin.fieldsets + (
-        ('Custom Fields', {'fields': ('role', 'is_approved', 'profile_picture', 'address')}),
+        ('Role & Permissions', {
+            'fields': ('role', 'is_approved')
+        }),
+        ('Academic Identity (Students Only)', {
+            'fields': ('course', 'year', 'section'),
+            'description': 'Leave these blank for Faculty and Admin accounts.'
+        }),
     )
     
-    # Organize fields in the "Add User" form
+    # 4. Add the fields to the "Add User" screen (when creating a user manually from the admin)
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Custom Fields', {'fields': ('role', 'is_approved', 'profile_picture', 'address')}),
+        ('Custom Profile Details', {
+            'classes': ('wide',),
+            'fields': ('role', 'course', 'year', 'section', 'is_approved')
+        }),
     )
 
+# Register the custom model with the custom admin class
 admin.site.register(CustomUser, CustomUserAdmin)

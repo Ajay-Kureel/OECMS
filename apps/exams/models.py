@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from academics.models import Subject
-
+from academics.models import Course
 class Question(models.Model):
     DIFFICULTY_CHOICES = [
         ('easy', 'Easy'),
@@ -54,6 +54,11 @@ class Exam(models.Model):
     # Security and Evaluation
     proctoring_enabled = models.BooleanField(default=True, help_text="Enable AI Camera Surveillance")
     passing_marks = models.PositiveIntegerField()
+
+    # --- NEW: Audience Targeting ---
+    target_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name='targeted_exams')
+    target_year = models.PositiveIntegerField(null=True, blank=True, help_text="Leave blank for all years")
+    target_section = models.CharField(max_length=50, null=True, blank=True, help_text="Leave blank for all sections")
 
     # Notice: 'total_marks' field is REMOVED! It is now an auto-calculated property.
     @property
