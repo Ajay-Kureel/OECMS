@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Exams | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Manage Your Examinations</h1>
+            <p class="text-gray-500 mt-1">Track schedules, edit rules, or remove upcoming tests.</p>
+        </div>
+        <a href="{% url 'create_exam' %}" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-teal-700 transition shadow-md flex items-center">
+            <i class="fas fa-plus-circle mr-2"></i> Create New Exam
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <p class="text-sm text-gray-400 font-bold uppercase tracking-wider">Total Exams</p>
+            <p class="text-3xl font-black text-gray-800">{{ exams.count }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-widest border-b">
+                        <th class="px-6 py-4 font-bold">Exam Details</th>
+                        <th class="px-6 py-4 font-bold">Subject</th>
+                        <th class="px-6 py-4 font-bold">Schedule & Timing</th>
+                        <th class="px-6 py-4 font-bold text-center">Status</th>
+                        <th class="px-6 py-4 font-bold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for exam in exams %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800 text-lg">{{ exam.title }}</div>
+                            <div class="text-xs text-gray-400 flex items-center mt-1">
+                                <i class="fas fa-clock mr-1"></i> {{ exam.duration_minutes }} Mins | 
+                                <i class="fas fa-question-circle ml-2 mr-1"></i> {{ exam.questions.count }} Questions
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-100 uppercase tracking-tighter">
+                                {{ exam.subject.code }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs text-gray-600 space-y-1">
+                                <div class="flex items-center"><i class="fas fa-sign-in-alt text-green-500 mr-2 w-4 text-center"></i> {{ exam.start_time|date:"M d, Y h:i A" }}</div>
+                                <div class="flex items-center"><i class="fas fa-sign-out-alt text-red-500 mr-2 w-4 text-center"></i> {{ exam.end_time|date:"M d, Y h:i A" }}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            {% if exam.start_time <= now and exam.end_time >= now %}
+                                <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-black animate-pulse border border-green-200">
+                                    <span class="w-2 h-2 bg-green-600 rounded-full mr-2"></span> LIVE
+                                </span>
+                            {% elif exam.end_time < now %}
+                                <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-lg text-xs font-bold">
+                                    <i class="fas fa-history mr-1"></i> ENDED
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-xs font-bold border border-teal-100">
+                                    <i class="fas fa-calendar-alt mr-1"></i> SCHEDULED
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-end space-x-2">
+                                <a href="{% url 'edit_exam' exam.id %}" 
+                                   class="p-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm border border-blue-100"
+                                   title="Edit Exam Configuration">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+
+                                <form method="POST" onsubmit="return confirm('Attention: Deleting this exam will remove all associated student records. Proceed?');" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" 
+                                            class="p-2.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition shadow-sm border border-red-100"
+                                            {% if exam.start_time <= now and exam.end_time >= now %} disabled title="Ongoing exams cannot be deleted" {% endif %}>
+                                        <i class="fas fa-trash-alt text-sm"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-20 text-center">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-clipboard-list text-6xl text-gray-200 mb-4"></i>
+                                <h3 class="text-xl font-bold text-gray-400">No Exams Created Yet</h3>
+                                <p class="text-gray-400 text-sm mt-2">Get started by creating your first examination schedule.</p>
+                                <a href="{% url 'create_exam' %}" class="mt-6 text-teal-600 font-bold hover:underline">
+                                    + Create Your First Exam
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Alerts ko auto-hide karne ke liye
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.messages, [role="alert"]');
+        alerts.forEach(alert => {
+            alert.style.transition = "opacity 0.5s ease";
+            alert.style.opacity = "0";
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 4000);
+</script>
+{% endblock %}
