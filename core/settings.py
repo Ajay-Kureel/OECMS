@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.accounts',
-    # 'django_extensions',
+    'django_extensions',
     'apps.academics', # We will create this later
     'apps.exams',
 ]
