@@ -1,105 +1,236 @@
 {% extends 'base.html' %}
 
-{% block title %}Exam Report | {{ student_exam.student.username }}{% endblock %}
+{% block title %}Audit Report | {{ student_exam.student.username }}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto py-8">
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .answer-card {
+        transition: all 0.3s ease;
+    }
+    .answer-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px -10px rgba(0,0,0,0.08);
+    }
+</style>
+
+<div class="fixed inset-0 bg-[#f8fafc] overflow-hidden -z-10">
+    <div class="absolute top-[-10%] right-[10%] w-[35vw] h-[35vw] bg-cyan-300/40 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-300/30 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob animation-delay-2000"></div>
+    <div class="absolute top-[40%] left-[30%] w-[30vw] h-[30vw] bg-rose-300/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob animation-delay-4000"></div>
+</div>
+
+<div class="max-w-[1400px] mx-auto py-12 px-4 sm:px-8 lg:px-12 font-sans relative z-10">
     
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">Candidate Evaluation Report</h1>
-            <p class="text-gray-500 mt-1">Detailed breakdown of examination attempt.</p>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+        <div class="relative">
+            <div class="flex items-center space-x-2 mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
+                <span>Exams</span>
+                <i class="fas fa-chevron-right text-[8px] text-slate-300"></i>
+                <span class="text-indigo-500">{{ student_exam.exam.subject.code }}</span>
+                <i class="fas fa-chevron-right text-[8px] text-slate-300"></i>
+                <span class="text-slate-600">Audit Report</span>
+            </div>
+            
+            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 tracking-tight mb-2">
+                Candidate Evaluation
+            </h1>
+            <p class="text-slate-500 font-medium text-lg">
+                Secure audit log for <span class="text-slate-700 font-bold">{{ student_exam.exam.title }}</span>
+            </p>
         </div>
-        <a href="{% url 'admin_results' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Results
+        
+        <a href="{% url 'admin_results' %}" class="mt-6 md:mt-0 group relative inline-flex items-center justify-center px-8 py-3.5 font-bold text-slate-700 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+            <span class="absolute inset-0 w-full h-full -mt-1 rounded-2xl opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+            <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform"></i> Back to Results
         </a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 class="text-xs uppercase text-gray-400 font-bold tracking-wider mb-4">Candidate Information</h3>
-            <div class="flex items-center mb-2">
-                <div class="h-12 w-12 rounded-full bg-blue-100 text-primary flex items-center justify-center font-bold text-xl mr-4">
+        <div class="glass-card p-8 rounded-[2rem] shadow-[0_15px_30px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 flex flex-col justify-center">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            
+            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-6 relative z-10">Identity Verified</p>
+            
+            <div class="flex items-center space-x-5 relative z-10">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-[0_10px_25px_rgba(79,70,229,0.3)] border-2 border-white/50 group-hover:rotate-6 transition-transform">
                     {{ student_exam.student.username|make_list|first|upper }}
                 </div>
                 <div>
-                    <p class="font-bold text-lg text-gray-800">{{ student_exam.student.first_name }} {{ student_exam.student.last_name }}</p>
-                    <p class="text-sm text-gray-500">{{ student_exam.student.username }} | {{ student_exam.student.email }}</p>
+                    <h2 class="text-2xl font-black text-slate-800 leading-tight">{{ student_exam.student.first_name }} {{ student_exam.student.last_name }}</h2>
+                    <p class="text-sm text-indigo-500 font-bold mt-1">@{{ student_exam.student.username }}</p>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">{{ student_exam.student.email }}</p>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-100">
-                <p class="text-sm text-gray-600"><span class="font-semibold">Exam:</span> {{ student_exam.exam.title }}</p>
-                <p class="text-sm text-gray-600"><span class="font-semibold">Subject:</span> {{ student_exam.exam.subject.code }}</p>
+        </div>
+
+        <div class="glass-card p-8 rounded-[2rem] shadow-[0_15px_30px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 border-b-4 {% if percentage >= 40 %}border-b-emerald-500{% else %}border-b-rose-500{% endif %}">
+            <div class="absolute -right-10 -top-10 w-40 h-40 {% if percentage >= 40 %}bg-emerald-400/10{% else %}bg-rose-400/10{% endif %} rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            
+            <div class="flex justify-between items-start mb-2 relative z-10">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Final Assessment Score</p>
+                {% if percentage >= 40 %}
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-200 shadow-sm animate-pulse">Pass</span>
+                {% else %}
+                    <span class="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-rose-200 shadow-sm">Fail</span>
+                {% endif %}
+            </div>
+            
+            <div class="relative z-10 mt-4">
+                <div class="flex items-end space-x-2">
+                    <span class="text-6xl font-black text-slate-800 leading-none">{{ student_exam.score }}</span>
+                    <span class="text-2xl font-bold text-slate-400 mb-1">/ {{ student_exam.exam.total_marks }}</span>
+                </div>
+                
+                <div class="mt-5 flex items-center space-x-4">
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner flex-1">
+                        <div class="h-2.5 rounded-full relative {% if percentage >= 40 %}bg-gradient-to-r from-emerald-400 to-teal-500{% else %}bg-gradient-to-r from-orange-400 to-rose-500{% endif %}" style="width: {{ percentage }}%">
+                            <div class="absolute inset-0 bg-white/20"></div>
+                        </div>
+                    </div>
+                    <span class="text-sm font-black {% if percentage >= 40 %}text-emerald-500{% else %}text-rose-500{% endif %}">{{ percentage }}%</span>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center items-center text-center">
-            <h3 class="text-xs uppercase text-gray-400 font-bold tracking-wider mb-2">Final Score</h3>
-            <div class="text-5xl font-bold text-primary mb-2">
-                {{ student_exam.score }}<span class="text-2xl text-gray-400">/{{ student_exam.exam.total_marks }}</span>
+        {% if student_exam.proctoring_warnings == 0 %}
+            <div class="bg-emerald-50/80 backdrop-blur-xl p-8 rounded-[2rem] border border-emerald-200/60 shadow-[0_15px_30px_-10px_rgba(16,185,129,0.15)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <i class="fas fa-shield-check absolute -right-6 -bottom-6 text-8xl opacity-10 text-emerald-600 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500"></i>
+                <p class="text-[10px] text-emerald-600/70 font-black uppercase tracking-widest mb-4 relative z-10">AI Proctoring Audit</p>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-sm border border-emerald-200">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-emerald-700">Clean Session</h2>
+                    <p class="text-sm text-emerald-600/80 font-medium mt-1">No suspicious activity detected.</p>
+                </div>
             </div>
-            <p class="text-lg font-semibold {% if percentage >= 40 %}text-green-600{% else %}text-red-500{% endif %}">
-                {{ percentage }}% 
-                {% if percentage >= 40 %}(Pass){% else %}(Fail){% endif %}
-            </p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center items-center text-center">
-            <h3 class="text-xs uppercase text-gray-400 font-bold tracking-wider mb-2">AI Proctoring Audit</h3>
-            {% if student_exam.proctoring_warnings == 0 %}
-                <i class="fas fa-shield-check text-5xl text-green-500 mb-2"></i>
-                <p class="text-lg font-bold text-green-600">Clean Session</p>
-                <p class="text-sm text-gray-500">No suspicious activity detected.</p>
-            {% elif student_exam.proctoring_warnings <= 3 %}
-                <i class="fas fa-exclamation-circle text-5xl text-yellow-500 mb-2"></i>
-                <p class="text-lg font-bold text-yellow-600">{{ student_exam.proctoring_warnings }} Warnings</p>
-                <p class="text-sm text-gray-500">Minor deviations detected.</p>
-            {% else %}
-                <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-2"></i>
-                <p class="text-lg font-bold text-red-600">{{ student_exam.proctoring_warnings }} Warnings</p>
-                <p class="text-sm text-red-400 font-semibold">High Risk of Malpractice!</p>
-            {% endif %}
-        </div>
+        {% elif student_exam.proctoring_warnings <= 3 %}
+            <div class="bg-amber-50/80 backdrop-blur-xl p-8 rounded-[2rem] border border-amber-200/60 shadow-[0_15px_30px_-10px_rgba(245,158,11,0.15)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <i class="fas fa-exclamation-circle absolute -right-6 -bottom-6 text-8xl opacity-10 text-amber-600 group-hover:scale-110 transition-transform duration-500"></i>
+                <p class="text-[10px] text-amber-600/70 font-black uppercase tracking-widest mb-4 relative z-10">AI Proctoring Audit</p>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-sm border border-amber-200">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-amber-700">{{ student_exam.proctoring_warnings }} Warnings</h2>
+                    <p class="text-sm text-amber-600/80 font-medium mt-1">Minor visual deviations detected.</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-rose-500/30 shadow-[0_20px_40px_-10px_rgba(244,63,94,0.25)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <i class="fas fa-exclamation-triangle absolute -right-6 -bottom-6 text-8xl opacity-10 text-rose-500 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500"></i>
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4 relative z-10">AI Proctoring Audit</p>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-sm border border-rose-500/30">
+                        <i class="fas fa-radiation-alt animate-pulse"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.4)]">{{ student_exam.proctoring_warnings }} Warnings</h2>
+                    <p class="text-sm text-rose-300/80 font-bold mt-1">High Risk of Malpractice!</p>
+                </div>
+            </div>
+        {% endif %}
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b bg-gray-50">
-            <h3 class="font-bold text-gray-800">Detailed Answer Sheet</h3>
+    <div class="glass-card rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-white/60 overflow-hidden relative z-20">
+        <div class="px-10 py-8 border-b border-white/40 flex justify-between items-center bg-white/40">
+            <div>
+                <h3 class="font-black text-slate-800 text-2xl tracking-tight">Detailed Question Log</h3>
+                <p class="text-sm text-slate-500 font-medium mt-1">Question-by-question breakdown of the candidate's submission.</p>
+            </div>
         </div>
-        <div class="p-6 space-y-6">
+        
+        <div class="p-8 space-y-6 bg-slate-50/30">
             {% for item in detailed_answers %}
-            <div class="p-4 rounded-lg border {% if item.is_correct %}border-green-200 bg-green-50{% elif item.selected == None %}border-gray-200 bg-gray-50{% else %}border-red-200 bg-red-50{% endif %}">
+            <div class="answer-card p-6 rounded-2xl border bg-white/60 backdrop-blur-sm relative overflow-hidden {% if item.is_correct %}border-emerald-200/60{% elif item.selected == None %}border-slate-200/60{% else %}border-rose-200/60{% endif %}">
                 
-                <div class="flex justify-between items-start mb-3">
-                    <p class="font-semibold text-gray-800">
-                        <span class="text-gray-500 mr-2">Q{{ forloop.counter }}.</span>
-                        {{ item.question.text }}
-                    </p>
-                    <span class="ml-4 whitespace-nowrap font-bold {% if item.is_correct %}text-green-600{% else %}text-red-500{% endif %}">
-                        {% if item.is_correct %}+{{ item.question.marks }} Mark(s){% else %}0 Mark(s){% endif %}
-                    </span>
-                </div>
+                <div class="absolute left-0 top-0 bottom-0 w-2 {% if item.is_correct %}bg-emerald-400{% elif item.selected == None %}bg-slate-300{% else %}bg-rose-400{% endif %}"></div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
-                    <div class="flex items-center p-3 bg-white rounded border border-gray-200">
-                        <span class="font-bold text-gray-500 w-24">Correct Answer:</span>
-                        <span class="font-medium text-gray-800">
-                            Option {{ item.question.correct_answer }}
+                <div class="flex justify-between items-start mb-6 pl-4">
+                    <div class="flex-1 pr-6">
+                        <p class="font-bold text-slate-800 text-lg leading-relaxed">
+                            <span class="text-slate-400 mr-2 select-none">Q{{ forloop.counter }}.</span>
+                            {{ item.question.text }}
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-col items-end">
+                        <span class="whitespace-nowrap font-black text-lg {% if item.is_correct %}text-emerald-500{% else %}text-rose-500{% endif %} bg-white px-4 py-1.5 rounded-xl shadow-sm border border-slate-100">
+                            {% if item.is_correct %}+{{ item.question.marks|default:'1' }} pts{% else %}0 pts{% endif %}
                         </span>
                     </div>
+                </div>
 
-                    <div class="flex items-center p-3 bg-white rounded border border-gray-200">
-                        <span class="font-bold text-gray-500 w-24">Student Answer:</span>
-                        {% if item.selected %}
-                            <span class="font-medium {% if item.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
-                                Option {{ item.selected }} 
-                                {% if item.is_correct %}<i class="fas fa-check-circle ml-1"></i>{% else %}<i class="fas fa-times-circle ml-1"></i>{% endif %}
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 pl-4">
+                    
+                    <div class="flex items-stretch p-4 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-emerald-400"></div>
+                        <div class="flex flex-col justify-center w-28 shrink-0 pr-2 border-r border-slate-100 mr-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Answer</span>
+                        </div>
+                        <div class="flex items-center flex-1">
+                            <span class="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 font-black flex items-center justify-center mr-3 border border-slate-200">
+                                {{ item.question.correct_answer }}
                             </span>
-                        {% else %}
-                            <span class="font-medium text-gray-400 italic">Not Attempted</span>
-                        {% endif %}
+                            <span class="text-sm font-semibold text-slate-700 leading-snug line-clamp-2" title="{{ item.correct_text }}">
+                                {{ item.correct_text }}
+                            </span>
+                        </div>
                     </div>
+
+                    <div class="flex items-stretch p-4 bg-white rounded-xl border shadow-sm relative overflow-hidden {% if item.is_correct %}border-emerald-100{% elif item.selected == None %}border-slate-100{% else %}border-rose-100{% endif %}">
+                        <div class="absolute inset-y-0 left-0 w-1 {% if item.is_correct %}bg-emerald-400{% elif item.selected == None %}bg-slate-300{% else %}bg-rose-400{% endif %}"></div>
+                        
+                        <div class="flex flex-col justify-center w-28 shrink-0 pr-2 border-r border-slate-100 mr-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Answer</span>
+                        </div>
+                        
+                        <div class="flex items-center flex-1 justify-between">
+                            {% if item.selected %}
+                                <div class="flex items-center flex-1 mr-2">
+                                    <span class="w-8 h-8 shrink-0 rounded-lg font-black flex items-center justify-center mr-3 border shadow-sm {% if item.is_correct %}bg-emerald-50 text-emerald-600 border-emerald-200{% else %}bg-rose-50 text-rose-600 border-rose-200{% endif %}">
+                                        {{ item.selected }}
+                                    </span>
+                                    <span class="text-sm font-semibold {% if item.is_correct %}text-emerald-700{% else %}text-rose-700{% endif %} leading-snug line-clamp-2" title="{{ item.selected_text }}">
+                                        {{ item.selected_text }}
+                                    </span>
+                                </div>
+                                <div class="shrink-0">
+                                    {% if item.is_correct %}
+                                        <span class="text-[10px] font-black text-emerald-500 uppercase tracking-wider bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 shadow-sm"><i class="fas fa-check mr-1"></i> Match</span>
+                                    {% else %}
+                                        <span class="text-[10px] font-black text-rose-500 uppercase tracking-wider bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-100 shadow-sm"><i class="fas fa-times mr-1"></i> Incorrect</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-200 italic">
+                                    <i class="fas fa-minus-circle mr-1"></i> Skipped
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
                 </div>
             </div>
             {% endfor %}

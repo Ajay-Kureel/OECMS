@@ -8,6 +8,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.contrib import messages
 import google.generativeai as genai
+from django.db.models import Count, Avg
+
 from django.conf import settings
 
 import json
@@ -213,18 +215,70 @@ def log_warning(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-
+# Admin Result Pages:-
 @login_required
 @admin_required
 def admin_result_viewer(request):
-    # Fetch all completed exams and order them by most recently completed
-    # We use select_related to optimize database queries for foreign keys
-    completed_exams = StudentExam.objects.filter(status='submitted').select_related('student', 'exam').order_by('-completed_at')
+    # Level 1: Fetch Exams that have at least one submitted attempt
+    completed_exams = Exam.objects.filter(studentexam__status='submitted').distinct().order_by('-end_time')
+    
+    exam_stats = []
+    for exam in completed_exams:
+        submissions = StudentExam.objects.filter(exam=exam, status='submitted')
+        total_taken = submissions.count()
+        
+        if total_taken > 0:
+            avg_score = sum(s.score for s in submissions) / total_taken
+            passed_count = sum(1 for s in submissions if s.score >= exam.passing_marks)
+            pass_rate = (passed_count / total_taken) * 100
+            
+            exam_stats.append({
+                'exam': exam,
+                'total_taken': total_taken,
+                'avg_score': round(avg_score, 1),
+                'pass_rate': round(pass_rate, 1)
+            })
+            
+    context = {'exam_stats': exam_stats}
+    return render(request, 'exams/admin_results.html', context)
+
+
+@login_required
+@admin_required
+def admin_exam_cohort_results(request, exam_id):
+    # Level 2: Fetch detailed roster and KPIs for a specific exam
+    exam = get_object_or_404(Exam, id=exam_id)
+    submissions = StudentExam.objects.filter(exam=exam, status='submitted').select_related('student').order_by('-score')
+    
+    total_taken = submissions.count()
+    passed_count = sum(1 for s in submissions if s.score >= exam.passing_marks)
+    pass_rate = round((passed_count / total_taken) * 100, 1) if total_taken > 0 else 0
+    avg_score = round(sum(s.score for s in submissions) / total_taken, 1) if total_taken > 0 else 0
+    total_warnings = sum(s.proctoring_warnings for s in submissions)
+    highest_score = max((s.score for s in submissions), default=0) if total_taken > 0 else 0
     
     context = {
-        'results': completed_exams
+        'exam': exam,
+        'submissions': submissions,
+        'pass_rate': pass_rate,
+        'avg_score': avg_score,
+        'total_warnings': total_warnings,
+        'highest_score': highest_score,
+        'total_taken': total_taken
     }
-    return render(request, 'exams/admin_results.html', context)
+    return render(request, 'exams/admin_exam_cohort_results.html', context)
+
+# @login_required
+# @admin_required
+# def admin_result_viewer(request):
+#     # Fetch all completed exams and order them by most recently completed
+#     # We use select_related to optimize database queries for foreign keys
+#     completed_exams = StudentExam.objects.filter(status='submitted').select_related('student', 'exam').order_by('-completed_at')
+    
+#     context = {
+#         'results': completed_exams
+#     }
+#     return render(request, 'exams/admin_results.html', context)
 
 
 @login_required
@@ -246,9 +300,19 @@ def admin_exam_detail(request, student_exam_id):
         selected = resp.selected_option if resp else None
         is_correct = (selected == q.correct_answer) if resp else False
         
+        # --- Helper to extract the actual text of the options ---
+        def get_option_text(letter):
+            if letter == 'A': return q.option_a
+            if letter == 'B': return q.option_b
+            if letter == 'C': return q.option_c
+            if letter == 'D': return q.option_d
+            return None
+        
         detailed_answers.append({
             'question': q,
             'selected': selected,
+            'selected_text': get_option_text(selected),
+            'correct_text': get_option_text(q.correct_answer),
             'is_correct': is_correct
         })
 

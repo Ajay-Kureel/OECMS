@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import exam_console, save_answer,submit_exam, exam_result, log_warning, admin_result_viewer, admin_exam_detail, add_question, create_exam, exam_lobby, question_bank, bulk_upload_questions ,ai_question_generator, report_question,faculty_reports, resolve_report, admin_exam_schedule,admin_create_exam
+from .views import exam_console, save_answer,submit_exam, exam_result, log_warning, admin_result_viewer, admin_exam_detail, add_question, create_exam, exam_lobby, question_bank, bulk_upload_questions ,ai_question_generator, report_question,faculty_reports, resolve_report, admin_exam_schedule,admin_create_exam,admin_exam_cohort_results
 
 urlpatterns = [
     path('lobby/<int:exam_id>/', exam_lobby, name='exam_lobby'),
@@ -8,7 +8,7 @@ urlpatterns = [
     path('api/submit_exam/', submit_exam, name='submit_exam'), # NEW
     path('result/<int:student_exam_id>/', exam_result, name='exam_result'), # NEW
     path('api/log_warning/', log_warning, name='log_warning'),
-    path('admin/results/', admin_result_viewer, name='admin_results'),
+    # path('admin/results/', admin_result_viewer, name='admin_results'),
     path('admin/results/<int:student_exam_id>/', admin_exam_detail, name='admin_exam_detail'),
     path('faculty/add-question/', add_question, name='add_question'),
     path('faculty/create-exam/', create_exam, name='create_exam'),
@@ -22,4 +22,7 @@ urlpatterns = [
     path('faculty/reports/resolve/<int:report_id>/', resolve_report, name='resolve_report'),
     path('admin-dashboard/schedule/', admin_exam_schedule, name='admin_exam_schedule'),
     path('admin-dashboard/create-exam/', admin_create_exam, name='admin_create_exam'),
+
+    path('admin-dashboard/results/', admin_result_viewer, name='admin_results'),
+    path('admin-dashboard/results/exam/<int:exam_id>/', admin_exam_cohort_results, name='admin_exam_cohort_results'),
 ]

@@ -1,86 +1,159 @@
 {% extends 'base.html' %}
 
-{% block title %}Result Viewer | ExamControl{% endblock %}
+{% block title %}Exam Analytics | Admin Command Center{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-8">
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+</style>
+
+<div class="fixed inset-0 bg-[#f8fafc] overflow-hidden -z-10">
+    <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-purple-300/40 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob"></div>
+    <div class="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-300/40 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-[-20%] left-[20%] w-[40vw] h-[40vw] bg-pink-300/40 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob animation-delay-4000"></div>
+</div>
+
+<div class="max-w-[1600px] mx-auto py-12 px-4 sm:px-8 lg:px-12 font-sans relative z-10">
     
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">Global Examination Results</h1>
-            <p class="text-gray-500 mt-1">Review student performance and AI proctoring logs.</p>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+        <div class="relative">
+            <div class="absolute -left-4 top-1 w-1.5 h-12 bg-gradient-to-b from-blue-600 to-cyan-400 rounded-full"></div>
+            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 tracking-tight mb-2">
+                Exam Intelligence
+            </h1>
+            <p class="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
+                Global performance oversight. Select an exam to drill down into cohort analytics, pass rates, and AI security logs.
+            </p>
         </div>
-        <a href="{% url 'admin_dashboard' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        <a href="{% url 'admin_dashboard' %}" class="mt-6 md:mt-0 group relative inline-flex items-center justify-center px-8 py-3.5 font-bold text-slate-700 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+            <span class="absolute inset-0 w-full h-full -mt-1 rounded-2xl opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+            <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform"></i> Back to Hub
         </a>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left whitespace-nowrap">
-                <thead>
-                    <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b">
-                        <th class="px-6 py-4 font-semibold">Student Name</th>
-                        <th class="px-6 py-4 font-semibold">Exam Title</th>
-                        <th class="px-6 py-4 font-semibold text-center">Final Score</th>
-                        <th class="px-6 py-4 font-semibold text-center">AI Warnings</th>
-                        <th class="px-6 py-4 font-semibold">Submission Time</th>
-                        <th class="px-6 py-4 font-semibold text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for result in results %}
-                    <tr class="hover:bg-blue-50 transition duration-150">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <div class="h-8 w-8 rounded-full bg-blue-100 text-primary flex items-center justify-center font-bold mr-3">
-                                    {{ result.student.username|make_list|first|upper }}
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-800">{{ result.student.first_name }} {{ result.student.last_name }}</p>
-                                    <p class="text-xs text-gray-500">ID: {{ result.student.username }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-gray-800 font-medium">{{ result.exam.title }}</p>
-                            <p class="text-xs text-gray-500">{{ result.exam.subject.code }}</p>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-lg font-bold text-gray-800">{{ result.score }}</span>
-                            <span class="text-xs text-gray-500">/ {{ result.exam.total_marks }}</span>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                            {% if result.proctoring_warnings > 0 %}
-                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full font-bold text-sm border border-red-200 shadow-sm">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i> {{ result.proctoring_warnings }}
-                                </span>
-                            {% else %}
-                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-sm">
-                                    <i class="fas fa-shield-check mr-1"></i> Clean
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">
-                            {{ result.completed_at|date:"M d, Y h:i A" }}
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                            <a href="{% url 'admin_exam_detail' result.id %}" class="text-primary hover:text-blue-800 font-medium text-sm hover:underline">
-                                View Details
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                            <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-300"></i>
-                            <p class="text-lg">No exam results available yet.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="glass-card rounded-3xl p-4 mb-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col lg:flex-row gap-4 justify-between items-center relative z-20">
+        <div class="flex-1 w-full relative">
+            <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+            <input type="text" placeholder="Search by exam title or subject code..." class="w-full bg-white/50 border border-slate-200/60 text-slate-800 text-sm rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block pl-12 p-3.5 transition-all outline-none font-medium placeholder-slate-400">
+        </div>
+        
+        <div class="flex w-full lg:w-auto gap-4">
+            <div class="relative w-full lg:w-64">
+                <select class="w-full appearance-none bg-white/50 border border-slate-200/60 text-slate-700 text-sm font-bold rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 block px-5 py-3.5 cursor-pointer outline-none transition-all">
+                    <option value="">All Courses Overview</option>
+                    <option value="bca">Bachelors in Computer Applications</option>
+                    <option value="bba">Bachelors of Business Admin</option>
+                    <option value="btech">B.Tech Computer Science</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+            
+            <button class="bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-slate-900/20 hover:bg-blue-600 hover:shadow-blue-600/30 transition-all duration-300 flex items-center justify-center">
+                <i class="fas fa-filter mr-2"></i> Filter
+            </button>
         </div>
     </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        {% for stat in exam_stats %}
+        <div class="glass-card rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(79,70,229,0.15)] overflow-hidden group hover:-translate-y-2 transition-all duration-500 flex flex-col relative">
+            
+            <div class="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150"></div>
+
+            <div class="p-8 pb-6 relative z-10 flex-1">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="inline-flex items-center px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30">
+                        <span class="text-xs font-black text-white uppercase tracking-widest">{{ stat.exam.subject.code }}</span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-white/60 px-3 py-1.5 rounded-lg border border-slate-100">
+                        <i class="fas fa-calendar-day text-slate-400 text-xs"></i>
+                        <span class="text-xs text-slate-600 font-bold uppercase tracking-wider">{{ stat.exam.end_time|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                
+                <h3 class="text-2xl font-black text-slate-800 leading-tight mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">{{ stat.exam.title }}</h3>
+                <p class="text-sm text-slate-500 font-semibold">{{ stat.exam.subject.name }}</p>
+            </div>
+
+            <div class="px-8 pb-8 relative z-10 space-y-6">
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
+                        <i class="fas fa-users mr-2 text-slate-300"></i> Participants
+                    </span>
+                    <span class="text-xl font-black text-slate-800 bg-slate-100 px-4 py-1 rounded-lg">{{ stat.total_taken }}</span>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg Score</span>
+                        <span class="text-lg font-black text-slate-800">{{ stat.avg_score }} <span class="text-xs text-slate-400 font-bold">/ {{ stat.exam.total_marks }}</span></span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner">
+                        <div class="bg-gradient-to-r from-blue-400 to-indigo-500 h-2.5 rounded-full relative" style="width: {% widthratio stat.avg_score stat.exam.total_marks 100 %}%">
+                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pass Rate</span>
+                        <span class="text-lg font-black {% if stat.pass_rate >= 50 %}text-emerald-500{% else %}text-rose-500{% endif %}">{{ stat.pass_rate }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner">
+                        <div class="h-2.5 rounded-full relative {% if stat.pass_rate >= 50 %}bg-gradient-to-r from-emerald-400 to-teal-500{% else %}bg-gradient-to-r from-orange-400 to-rose-500{% endif %}" style="width: {{ stat.pass_rate }}%">
+                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white/40 border-t border-white/50 relative z-10 m-2 mt-0 rounded-3xl">
+                <a href="{% url 'admin_exam_cohort_results' stat.exam.id %}" class="relative flex w-full items-center justify-center py-4 px-4 text-sm font-bold text-white bg-slate-900 rounded-2xl overflow-hidden group/btn shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_25px_rgba(79,70,229,0.4)] transition-all duration-300">
+                    <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
+                    <span class="relative flex items-center">
+                        View Cohort Analysis 
+                        <i class="fas fa-arrow-right ml-2 group-hover/btn:translate-x-2 transition-transform duration-300"></i>
+                    </span>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full glass-card rounded-[3rem] py-24 px-8 text-center border-2 border-dashed border-slate-300/50 shadow-sm relative overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl -z-10"></div>
+            
+            <div class="w-24 h-24 mx-auto bg-white rounded-full shadow-xl flex items-center justify-center mb-6 relative">
+                <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin opacity-20"></div>
+                <i class="fas fa-satellite-dish text-4xl text-blue-500 bg-clip-text"></i>
+            </div>
+            
+            <h3 class="text-3xl font-black text-slate-800 mb-3 tracking-tight">Awaiting Submissions</h3>
+            <p class="text-slate-500 text-lg font-medium max-w-lg mx-auto">Exams have been scheduled, but no students have submitted their final papers yet. Data will automatically populate here in real-time.</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-{% endblock %}  
+{% endblock %}
