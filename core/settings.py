@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import sys
 import os
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -42,10 +43,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'apps.accounts',
     'django_extensions',
     'apps.academics', # We will create this later
     'apps.exams',
+    # Allauth apps
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', # The Google provider
 ]
 
 MIDDLEWARE = [
@@ -56,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -140,3 +148,37 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 # --- AUTHENTICATION ROUTING ---
 LOGIN_REDIRECT_URL = '/'   # Where to go after a successful login
 LOGOUT_REDIRECT_URL = '/'  # Where to go after logging out
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend', # Standard email/password login
+    'allauth.account.auth_backends.AuthenticationBackend', # SSO Login
+]
+
+# Modern Allauth Configuration Settings
+SITE_ID = 1  # CRITICAL: Tells allauth to use the 127.0.0.1:8000 site we configured in the shell
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+SOCIALACCOUNT_LOGIN_ON_GET = True # Skips the "Are you sure you want to log in?" intermediate page
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CollegeDomainAdapter'
+
+# Define the Provider specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        # This 'APP' dictionary tells allauth to bypass the Django Admin database!
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        # What data we want to request from Google
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        # Automatically pull the Google profile picture into our app (optional but cool)
+        'FETCH_AVATAR': True, 
+    }
+}
