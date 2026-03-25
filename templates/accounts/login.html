@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load socialaccount %}
 {% block title %}Login | Exam System{% endblock %}
 
 {% block content %}
@@ -27,7 +27,23 @@
             <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition duration-300 transform hover:scale-105">
                 Login to Dashboard
             </button>
-            
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500 font-medium">Or continue with your College ID</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% provider_login_url 'google' %}" class="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-300">
+                        <img class="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo">
+                        Sign in with Google
+                    </a>
+                </div>
+            </div>
             <div class="text-center text-sm text-gray-500 mt-4">
                 Don't have an account? <a href="#" class="text-primary hover:underline">Contact Admin</a>
             </div>

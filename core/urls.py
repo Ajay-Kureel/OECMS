@@ -24,5 +24,6 @@ urlpatterns = [
     path('accounts/', include('apps.accounts.urls')),
     path('exams/', include('apps.exams.urls')),
     path('academics/', include('apps.academics.urls')),
+    path('accounts/', include('allauth.urls')), # Routes all SSO traffic
     
 ]

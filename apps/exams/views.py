@@ -7,7 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from django.utils import timezone
 from django.contrib import messages
-import google.generativeai as genai
+from google import genai
 from django.db.models import Count, Avg
 
 from django.conf import settings
@@ -512,21 +512,10 @@ def ai_question_generator(request):
         try:
             subject = Subject.objects.get(id=subject_id, faculty=request.user)
             
-            # 1. Authenticate with Gemini
-            genai.configure(api_key=settings.GEMINI_API_KEY)
+            # 1. Initialize the new modern Client
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
             
-            # 2. DYNAMIC DISCOVERY: Ask Google what models are currently active for this API key
-            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-            
-            if not available_models:
-                raise Exception("Your API key does not have access to any text generation models.")
-                
-            # Prefer a 'flash' model if available, otherwise just grab the first working model on the list
-            target_model_name = next((name for name in available_models if 'flash' in name.lower()), available_models[0])
-            
-            # Load the dynamically found model
-            model = genai.GenerativeModel(target_model_name)
-            # 3. Prompt Engineering
+            # 2. Prompt Engineering
             prompt = f"""
             You are an expert academic question generator. 
             Generate {num_questions} multiple-choice questions about "{topic}" at a "{difficulty}" difficulty level.
@@ -540,8 +529,12 @@ def ai_question_generator(request):
             - "correct_answer": The correct option letter ("A", "B", "C", or "D").
             """
             
-            # 4. Ask the AI!
-            response = model.generate_content(prompt)
+            # 3. Ask the AI using the standard fast flash model!
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            
             # 5. Clean the response and Parse the JSON
             raw_text = response.text
             
